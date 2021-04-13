@@ -2,8 +2,14 @@
 
 ## barectf
 This examples shows how to generate CTF file with [barectf](https://barectf.org)
+
 ### build
-`cmake --build ./cmake-build-debug --target ctf_gen -- -j 8`
+`mkdir cmake-build-debug && cd cmake-build-debug`
+
+`cmake ../`
+
+`cmake --build . --target ctf_gen -- -j 8`
+
 ### Description
 After build you can find all generated code in `gen` directory. 
 In `gen/traces` placed CTF metadata and traces itself.
