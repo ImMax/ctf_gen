@@ -1,0 +1,5 @@
+.idea/*
+cmake-build-debug/*
+barectf_test/gen/include/*
+barectf_test/gen/src/*
+barectf_test/gen/traces/*
