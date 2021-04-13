@@ -4,40 +4,35 @@ project(ctf_gen)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(ExternalProject)
+include(FetchContent)
 
 set(BARECTF_ROOT ${CMAKE_BINARY_DIR}/deps/barectf)
 set(BARECTF_TEST ${CMAKE_SOURCE_DIR}/barectf_test)
 set(BARECTF_GEN ${BARECTF_TEST}/gen)
+set(BARECTF_OUTPUT "${BARECTF_GEN}/src/barectf.c")
 
-ExternalProject_Add(barectf_external
-        PREFIX ${BARECTF_ROOT}
-        GIT_REPOSITORY "https://github.com/efficios/barectf.git"
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        LOG_DOWNLOAD ON
-        )
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/barectf_test/gen)
+file(MAKE_DIRECTORY ${BARECTF_GEN}/include)
+file(MAKE_DIRECTORY ${BARECTF_GEN}/src)
+file(MAKE_DIRECTORY ${BARECTF_GEN}/traces)
 
-ExternalProject_Get_Property(barectf_external source_dir)
-set(BareCtfIncludeDir ${source_dir})
+FetchContent_Declare(
+        barectf_external
+        GIT_REPOSITORY https://github.com/efficios/barectf.git
+)
 
-include_directories(ctf_gen PRIVATE ${BareCtfIncludeDir} ${BARECTF_GEN}/include)
+FetchContent_MakeAvailable(barectf_external)
 
-file(GLOB BARECTF_GEN_SRC ${BARECTF_GEN}/src/*.c)
+include_directories(ctf_gen PRIVATE ${BARECTF_GEN}/include ${barectf_external_SOURCE_DIR})
 
 add_executable(ctf_gen
         barectf_test/src/main.cpp
-        ${BARECTF_GEN_SRC}
-        ${BareCtfIncludeDir}/platforms/linux-fs/barectf-platform-linux-fs.c
+        ${BARECTF_OUTPUT}
+        ${barectf_external_SOURCE_DIR}/platforms/linux-fs/barectf-platform-linux-fs.c
         )
 
-add_custom_target(
-        run ALL
+add_custom_command(
+        OUTPUT ${BARECTF_OUTPUT}
         COMMAND barectf gen -H ${BARECTF_GEN}/include -c ${BARECTF_GEN}/src -m ${BARECTF_GEN}/traces ${BARECTF_TEST}/config/config.yaml
-        BYPRODUCTS barectf.h
         COMMENT "Generate sources with barectf"
 )
-
-add_dependencies(ctf_gen run barectf_external)
-
